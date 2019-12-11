@@ -1,5 +1,7 @@
 package com.example.todo
 
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +10,7 @@ import android.widget.EditText
 import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.example.todo.broadcast.MyReceiver
 import com.example.todo.fragments.AddToDoFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.*
@@ -41,6 +44,10 @@ class MainActivity : AppCompatActivity(), ItemRowListener, AddToDoFragment.AddTo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+        val mTime = IntentFilter(Intent.ACTION_TIME_TICK)
+        registerReceiver(MyReceiver(this), mTime)
+
         addToDoFragment = AddToDoFragment()
 
         supportFragmentManager.beginTransaction()
@@ -55,7 +62,7 @@ class MainActivity : AppCompatActivity(), ItemRowListener, AddToDoFragment.AddTo
         toDoItemList = mutableListOf<ToDoItem>()
         adapter = ToDoItemAdapter(this, toDoItemList!!)
         listViewItems!!.setAdapter(adapter)
-        mDatabase.orderByKey().addListenerForSingleValueEvent(itemListener)
+        mDatabase.orderByKey().addValueEventListener(itemListener)
 
     }
 
@@ -73,6 +80,7 @@ class MainActivity : AppCompatActivity(), ItemRowListener, AddToDoFragment.AddTo
 
     private fun addDataToList(dataSnapshot: DataSnapshot) {
         val items = dataSnapshot.children.iterator()
+        toDoItemList!!.clear()
         //Check if current database contains any collection
         if (items.hasNext()) {
             val toDoListindex = items.next()
